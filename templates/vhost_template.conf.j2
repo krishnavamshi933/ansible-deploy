@@ -1,0 +1,74 @@
+docRoot                   $VH_ROOT/html
+vhDomain                  {{ domain_name }}
+vhAliases                 www.{{ domain_name }}
+vhAutoRewrite             1
+
+<Directory $VH_ROOT/html>
+    Order allow,deny
+    Allow from all
+</Directory>
+
+index  {
+    useServer               0
+    indexFiles              index.html, index.php
+}
+
+scriptHandler  {
+    add                    lsapi:{{ project_path }}/{{ venv_path }}/bin/python3
+    lsapiHandler            on
+}
+
+extprocessor django {
+    type                    lsapi
+    address                 uds://tmp/lshttpd/django.sock
+    maxConns                35
+    env                     LSAPI_Aux_Role=NULL
+    initTimeout             60
+    retryTimeout            0
+    persistConn             1
+    pcKeepAliveTimeout      60
+    respBuffer              0
+    autoStart               1
+    path                    $VH_ROOT/html
+    backlog                 100
+    instances               1
+    extUser                 nobody
+    extGroup                nobody
+    extMode                 1
+    priority                0
+    memSoftLimit            2047M
+    memHardLimit            2047M
+    procSoftLimit           300
+    procHardLimit           350
+    suEXEC_User             nobody
+    suEXEC_Group            nobody
+    initTimeout             60
+    env                     DJANGO_SETTINGS_MODULE={{ project_name }}.settings
+}
+
+vhSSL {
+    keyFile                 /etc/letsencrypt/live/{{ domain_name }}/privkey.pem
+    certFile                /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+}
+
+vhRestrictSSL {
+    addr                    0.0.0.0
+    vhost                   {{ domain_name }}
+    SSLRequireSSL
+}
+
+rewrite  {
+    enable                  1
+    autoLoadHtaccess        1
+}
+
+accessLog {
+    filename                $SERVER_ROOT/logs/{{ domain_name }}_access.log
+    logHeaders              8
+    rollingSize             10M
+    keepDays                30
+    compressArchive         1
+    compressRolling         1
+}
+
+errorlog $SERVER_ROOT/logs/{{ domain_name }}_error.log
