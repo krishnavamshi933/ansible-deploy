@@ -28,10 +28,7 @@
         accept_hostkey: yes
         key_file: "~/.ssh/eddeploy"
       register: clone_repo
-      ignore_errors: yes
-
-    
-
+      ignore_errors: yes    
     - name: Install OpenLiteSpeed and necessary components
       apt:
         name: "{{ item }}"
@@ -120,7 +117,7 @@
 
     - name: Render the settings.py template file using Jinja2
       template:
-        src: /home/kali/openlitespeed/templates/settings.py.j2
+        src: templates/settings.py.j2
         dest: "{{ repo_destination }}/ncsjobsbe/niranaya/settings.py"
       vars:
         ALLOWED_HOSTS:
